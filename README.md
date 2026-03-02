@@ -26,7 +26,7 @@ PC (Monitor de Hardware XP)
         ↓
   📱 App Android
 ```
-Caso queiram baixar o apk >>> https://expo.dev/accounts/brkadaniel/projects/monitor-hardware-app/builds/b3db7e6a-3382-46cb-a37b-d4052cc8c2a7
+Caso queiram baixar o apk >>> https://expo.dev/accounts/brkadaniel/projects/monitor-hardware-app/builds/c8d5e3e5-c468-4a55-a863-f9c34f7f3626
 
 ---
 
