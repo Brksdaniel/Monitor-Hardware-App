@@ -8,6 +8,8 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState('tensoes');
   const [historico, setHistorico] = useState<{[key: string]: number[]}>({});
+  const [pcSelecionado, setPcSelecionado] = useState<string>('todos');
+  const [pcsDisponiveis, setPcsDisponiveis] = useState<string[]>([]);
 
   async function buscarDados() {
     const { data } = await supabase
@@ -18,6 +20,9 @@ export default function HomeScreen() {
     if (data) {
   const tempsImportantes = ['GPU Hot Spot', 'GPU Core', 'Core (Tctl/Tdie)'];
   const novoHistorico = { ...historico };
+  // Pega os PCs únicos
+  const pcs = [...new Set(data.map((d: any) => d.pc).filter(Boolean))];
+  setPcsDisponiveis(pcs);
   
   data.filter((d: any) => d.grupo === 'Temperatures' && tempsImportantes.includes(d.nome))
     .forEach((d: any) => {
@@ -43,9 +48,9 @@ export default function HomeScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  const tensoes = dados.filter(d => d.grupo === 'Voltages');
-  const temps = dados.filter(d => d.grupo === 'Temperatures');
-  const fans = dados.filter(d => d.grupo === 'Fans');
+  const tensoes = dados.filter(d => d.grupo === 'Voltages' && (pcSelecionado === 'todos' || d.pc === pcSelecionado));
+  const temps = dados.filter(d => d.grupo === 'Temperatures' && (pcSelecionado === 'todos' || d.pc === pcSelecionado));
+  const fans = dados.filter(d => d.grupo === 'Fans' && (pcSelecionado === 'todos' || d.pc === pcSelecionado));
 
   function getCorValor(valor: string, tipo: string) {
     const val = parseFloat(valor);
@@ -113,11 +118,31 @@ export default function HomeScreen() {
         <Text style={styles.headerIcon}>💻</Text>
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>Monitor de Hardware XP</Text>
-          <Text style={styles.headerSub}>AMD Ryzen 7 2700 • RTX 2060</Text>
+          <Text style={styles.headerSub}>AMD Ryzen 7 2700 - RTX 2060</Text>
         </View>
         <View style={styles.led} />
-      </View>
-
+      </View>  {/* fecha o header */}
+      
+      {pcsDisponiveis.length > 1 && (
+        <View style={styles.pcSelector}>
+          <TouchableOpacity
+            style={[styles.pcBtn, pcSelecionado === 'todos' && styles.pcBtnAtivo]}
+            onPress={() => setPcSelecionado('todos')}
+          >
+            <Text style={styles.pcBtnText}>Todos</Text>
+          </TouchableOpacity>
+          {pcsDisponiveis.map((pc) => (
+            <TouchableOpacity
+              key={pc}
+              style={[styles.pcBtn, pcSelecionado === pc && styles.pcBtnAtivo]}
+              onPress={() => setPcSelecionado(pc)}
+            >
+              <Text style={styles.pcBtnText}>{pc}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    
       {/* Tabs */}
       <View style={styles.tabs}>
         {[
@@ -305,4 +330,27 @@ const styles = StyleSheet.create({
   fanInfo: { flex: 1 },
   fanName: { fontSize: 11, color: '#666' },
   fanRpm: { fontSize: 14, fontWeight: 'bold', color: '#003399' },
+  pcSelector: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    padding: 8,
+    backgroundColor: '#002299',
+  },
+  pcBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  pcBtnAtivo: {
+    backgroundColor: 'rgba(255,255,255,0.35)',
+    borderColor: 'white',
+  },
+  pcBtnText: {
+    color: 'white',
+    fontSize: 11,
+  },
 });
